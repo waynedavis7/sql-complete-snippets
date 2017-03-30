@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>codes_restore</Title>
+      <Shortcut>codes_restore</Shortcut>
+      <Description>Restore PCA.dbo.Codes from backup table</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE PCA
+
+UPDATE Codes
+SET StringValue = tmp.StringValue
+	,NumericValue = tmp.NumericValue
+	,BooleanValue = tmp.BooleanValue
+	,Encoded = tmp.Encoded
+	,Exclude = tmp.Exclude
+	,Inactive = tmp.Inactive
+	,ModifyUser = tmp.ModifyUser
+	,ModifyTimeStamp = tmp.ModifyTimeStamp
+FROM Codes
+JOIN CodesTmp tmp ON Codes.Applicationid = tmp.applicationid
+	AND Codes.CodeHeaderId = tmp.CodeHeaderId
+	AND Codes.CodeId = tmp.CodeId
+
+INSERT INTO Codes
+SELECT tmp.*
+FROM CodesTmp tmp
+LEFT JOIN Codes ON tmp.Applicationid = Codes.applicationid
+	AND tmp.CodeHeaderId = Codes.CodeHeaderId
+	AND tmp.CodeId = Codes.CodeId
+LEFT JOIN CodeHeaders ch ON tmp.CodeHeaderId = ch.CodeHeaderId
+	AND tmp.ApplicationId = ch.ApplicationId
+WHERE Codes.CodeId IS NULL
+	AND ch.Type = 'A']]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

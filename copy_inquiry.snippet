@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>copy_inquiry</Title>
+      <Shortcut>copy_inquiry</Shortcut>
+      <Description>Copy Advance Inquiry</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE AppSettings
+
+DECLARE @MaxInquiryId AS BIGINT
+
+SELECT @MaxInquiryId = MAX(inquiryId)
+FROM UserAdvancedInquiries
+
+IF OBJECT_ID('tempdb.dbo.#inquiries') IS NOT NULL
+	DROP TABLE #inquiries
+
+SELECT ApplicationName
+	,SystemName
+	,InquiryDB
+	,UserID
+	,InquiryName
+	,UserDefinedName
+	,BLOB
+	,UserDefault
+	,InquiryID
+	,GridLayout
+	,ROW_NUMBER() OVER (
+		ORDER BY inquiryId
+		) + @MaxInquiryId NewInquiryId
+INTO #inquiries
+FROM [<LinkedServer,,>].AppSettings.dbo.UserAdvancedInquiries
+WHERE  RTRIM(UserDefinedName) = '<User Defined Name,,>' AND RTRIM(userId) = '<User Id,,>'
+ORDER BY InquiryID
+
+UPDATE #inquiries
+SET SystemName = '<New Systemname,,>'
+
+-----------------------------------------------------------------
+-- End Get inquiries and new inquiry Id
+-----------------------------------------------------------------
+--SELECT *
+--FROM #sharedinquiries
+--SELECT *
+--FROM #inquiries
+SET IDENTITY_INSERT UserAdvancedInquiries ON
+
+INSERT INTO UserAdvancedInquiries (
+	ApplicationName
+	,SystemName
+	,InquiryDB
+	,UserID
+	,InquiryName
+	,UserDefinedName
+	,BLOB
+	,UserDefault
+	,GridLayout
+	,InquiryID
+	)
+SELECT ApplicationName
+	,SystemName
+	,InquiryDB
+	,UserID
+	,InquiryName
+	,UserDefinedName
+	,BLOB
+	,UserDefault
+	,GridLayout
+	,NewInquiryId
+FROM #inquiries
+
+SET IDENTITY_INSERT UserAdvancedInquiries OFF
+
+IF OBJECT_ID('tempdb.dbo.#inquiries') IS NOT NULL
+	DROP TABLE #inquiries
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

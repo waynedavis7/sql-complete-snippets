@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_change_table</Title>
+      <Shortcut>gen_change_table</Shortcut>
+      <Description>Generates Change Table and Trigger</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Database</ID>
+          <ToolTip>Database</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>TableName</ID>
+          <ToolTip>Table</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[use $Database$
+
+set nocount on
+
+declare @table varchar(100)
+declare @changetable varchar(150)
+declare @database varchar(100)
+set @database = '$Database$'
+set @table = '$TableName$' -- set table name here
+set @changetable = @table + 'Changes'
+declare @sql table(s varchar(8000), id int identity)
+declare @keys table(s varchar(8000), id int identity)
+declare @keycriteria VARCHAR(8000)
+declare @firstcolumn VARCHAR(200);
+declare @schema VARCHAR(200);
+
+set @keycriteria = ''
+
+
+select TOP 1 @firstcolumn = column_name, @schema = table_schema from information_schema.columns where table_name = @table
+ order by ordinal_position
+
+
+set @changetable = '[' + @schema + ']' + '.[' + @changetable + ']' 
+-- create statement
+insert into @sql(s) VALUES('USE ' + @database)
+insert into @sql(s) VALUES('')
+insert into  @sql(s) values ('CREATE TABLE ' + @changetable + ' (')
+insert INTO  @sql(s) VALUES('  [SequenceNo] bigint not null identity(1,1) Primary Key,')
+insert INTO  @sql(s) VALUES('  [ChangeType] nchar(1) not null default(''''),')
+insert INTO  @sql(s) VALUES('  [ChangeDate] datetime not null default(getdate()),')
+
+-- column list
+insert into @sql(s)
+select 
+    '  ['+column_name+'] ' + 
+    data_type + coalesce('('+cast(character_maximum_length as varchar)+')','') + ' ' +
+    case when exists ( 
+        select id from syscolumns
+        where object_name(id)=@table
+        and name=column_name
+        and columnproperty(id,name,'IsIdentity') = 1 
+    ) then
+        'IDENTITY(' + 
+        cast(ident_seed(@table) as varchar) + ',' + 
+        cast(ident_incr(@table) as varchar) + ')'
+    else ''
+    end + ' ' +
+    ( case when IS_NULLABLE = 'No' then 'NOT ' else '' end ) + 'NULL ' + 
+    coalesce('DEFAULT '+COLUMN_DEFAULT,'') + ','
+
+ from information_schema.columns where table_name = @table
+ order by ordinal_position
+
+update @sql set s=left(s,len(s)-1) where id=@@identity
+
+ --primary key
+declare @pkname varchar(100)
+select @pkname = constraint_name from information_schema.table_constraints
+where table_name = @table and constraint_type='PRIMARY KEY'
+
+if ( @pkname is not null ) begin
+   -- insert into @sql(s) values('  PRIMARY KEY (')
+    insert into @keys(s)
+        select ' i.['+COLUMN_NAME+'] = d.['+COLUMN_NAME+'] AND' from information_schema.key_column_usage
+        where constraint_name = @pkname
+        order by ordinal_position
+    -- remove trailing comma
+    update @keys set s=left(s,len(s)-3) where id=@@identity
+    --insert into @sql(s) values ('  )')
+end
+
+WHILE exists(SELECT * from @keys)
+begin
+	select top 1 @keycriteria = @keycriteria + s +  CHAR(13) + CHAR(10) +  '          ' from @keys order BY id
+	DELETE from @keys where id in (select top 1 id FROM @keys order by id)
+end
+
+-- closing bracket
+insert into @sql(s) values( ')' )
+insert into @sql(s) values( '' )
+insert into @sql(s) values( '' )
+
+insert into @sql values('USE ' + @database + '
+GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+CREATE TRIGGER [' + @schema + '].[trg_' + @table + 'Changes] ON ' + '[' + @schema + ']' + '.[' + @table + ']'  + '
+AFTER INSERT
+	,UPDATE
+	,DELETE
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	INSERT INTO ' + @changetable + '
+	SELECT ''C'',CURRENT_TIMESTAMP
+		,i.*
+	FROM inserted i
+	INNER JOIN deleted d
+		ON ' + @keycriteria + '
+			AND EXISTS (SELECT 
+			 i.*
+                        EXCEPT
+                        SELECT 
+		      d.*				    ) 	
+
+	INSERT INTO ' + @changetable + '
+	SELECT ''A''
+	    ,CURRENT_TIMESTAMP
+		,i.*
+	FROM inserted i
+	LEFT JOIN deleted d
+		ON ' + @keycriteria +  '
+	WHERE d.' + @firstcolumn + ' IS NULL
+
+	INSERT INTO ' + @changetable + '
+	SELECT ''D''
+	    ,CURRENT_TIMESTAMP
+		,d.*
+	FROM deleted d
+	LEFT JOIN inserted i
+		ON ' + @keycriteria + '							
+	WHERE i.' + @firstcolumn + ' IS NULL
+END
+
+GO
+
+ALTER TABLE ' + + '[' + @schema + ']' + '.[' + @table + ']'  + ' DISABLE TRIGGER [trg_' + @table + 'Changes]
+GO')
+
+--select s from @sql order by id
+
+declare @execSQL nvarchar(MAX)
+SET @execSQL = ''
+
+SELECT @execSQL = @execSQL + s + char(13) + char(10) FROM @sql order by id
+
+set @execSQL = @execSQL 
+PRINT CAST(@execSQL as NTEXT)
+
+
+
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

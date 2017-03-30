@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>search_columns</Title>
+      <Shortcut>search_columns</Shortcut>
+      <Description>Search for column</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>TableName</ID>
+          <ToolTip>TableName</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>ColumnName</ID>
+          <ToolTip>ColumnName</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>DBName</ID>
+          <ToolTip>DB name</ToolTip>
+          <Default>PCA</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE $DBName$
+
+select distinct  t.name [Table], c.name [Column]
+
+, ty.name , c.max_length , ty.system_type_id
+
+, c.column_id
+, sch.name
+, '<put '+ t.name + ' script here here>' script
+
+from sys.tables t
+inner join sys.columns c 
+on t.object_id = c.object_id
+inner join sys.types ty
+on c.system_type_id = ty.system_type_id
+
+inner join sys.schemas sch
+on sch.schema_id = t.schema_id
+
+
+where t.name like '%$TableName$%' 
+and c.name like '%$ColumnName$%' 
+and c.name like '%%'
+and c.name like '%%'
+
+order by sch.name,  t.name  , c.column_id , c.name
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

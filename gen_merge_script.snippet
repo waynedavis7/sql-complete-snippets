@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_merge_script</Title>
+      <Shortcut>gen_merge_script</Shortcut>
+      <Description>Generate Merge Script (up/sert)</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Database</ID>
+          <ToolTip>Database</ToolTip>
+          <Default>Trident</Default>
+        </Literal>
+        <Literal>
+          <ID>Table</ID>
+        </Literal>
+        <Literal>
+          <ID>Schema</ID>
+          <ToolTip>Schema</ToolTip>
+          <Default>dbo</Default>
+        </Literal>
+        <Literal>
+          <ID>LinkedServer</ID>
+          <ToolTip>LinkedServer</ToolTip>
+          <Default>%%LinkedServer%%</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[EXEC $Database$.dbo.sp_generate_merge
+			        @table_name = '$Table$'			--Table name
+				,@schema = '$Schema$'			--Schema
+				,@linked_server = '$LinkedServer$'	--linked Server '%%LinkedServer%%' for sync table scripts
+				,@go_char=''				--go char i.e. GO or ;
+				,@update_only_if_changed = '0'          --1 only update target if data has changed, 0 update if match if found
+				,@ommit_images ='0'			--1 omit images, 0 include images
+				,@ommit_computed_cols ='0'		--1 include computed columns, 0 exclude them (i.e. good for stockstring)
+				,@nologo = '1'						
+				,@include_rowsaffected = 0			
+				--,@cols_to_exclude=''''
+				,@from=',@from=NULL'		        --override the from clause if where clause it needed]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

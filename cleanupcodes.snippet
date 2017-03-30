@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>codes_cleanup</Title>
+      <Shortcut>codes_cleanup</Shortcut>
+      <Description>Remove PCA.dbo.Codestmp table</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE PCA
+
+IF OBJECT_ID('CodesTmp') IS NOT NULL
+BEGIN
+	DROP TABLE CodesTmp
+END]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_lock_chain</Title>
+      <Shortcut>info_lock_chain</Shortcut>
+      <Description>Lock Chain</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[/*
+--************************************************************************************
+-- Description:    This script list the current locking block chain.
+--            It will create 1 function: fn_GetLockChainSubTree
+--                     1 table: LockChain
+--
+--
+-- Parameters: NONE
+--
+-- Returns: Locking block chain
+--
+-- Created:     9/07/2008    John Liu
+--
+-- Typical Usage:    This script is typically used to find the block chain information
+--
+-- Comments: It also lists the dead lock (if any) at the end.
+--      This script is for SQL 2005 and SQL 2008
+--
+--
+-- Modifications:
+--
+-- Initials Date Description
+-- -------- ---------- -----------------------------------------------------------
+-- 
+--************************************************************************************
+*/
+
+--***************************************Begin of create functions ********************************
+--***************************************** Begin of dbo.fn_GetLockChainSubTree ************************
+IF OBJECT_ID('dbo.fn_GetLockChainSubTree') IS NOT NULL DROP FUNCTION dbo.fn_GetLockChainSubTree
+go
+
+CREATE FUNCTION dbo.fn_GetLockChainSubTree(@Blocker AS INT) 
+RETURNS @TREE TABLE
+(
+ Blocker INT NOT NULL,
+ Blocked INT NOT NULL,
+ lvl INT NOT NULL
+)
+AS
+BEGIN
+WITH Block_Subtree(Blocker,Blocked, lvl)
+AS
+( 
+-- Anchor Member (AM)
+SELECT 
+Blocker
+,Blocked
+,0
+FROM 
+LockChain
+WHERE 
+Blocker = @Blocker
+
+UNION all
+
+-- Recursive Member (RM)
+SELECT 
+l.Blocker
+, l.Blocked
+, t.lvl+1
+FROM 
+LockChain AS l
+INNER JOIN 
+Block_Subtree AS t
+ON
+l.Blocker = t.Blocked
+)
+
+INSERT INTO 
+@TREE
+SELECT 
+* 
+FROM 
+Block_Subtree
+
+RETURN
+END
+GO
+--***************************************** End of dbo.fn_GetLockChainSubTree ************************
+--***************************************End of create functions ********************************
+
+--*************************************************************************************
+--**********************************         Main section         **************************
+--*************************************************************************************
+-- -----------------------------------------------
+-- Core processing
+-- -----------------------------------------------
+IF OBJECT_ID('LockChain') IS NOT NULL DROP TABLE LockChain
+go
+
+--initial the LockChain table
+SELECT
+Blocker = Blocking_Session_ID
+,Blocked = Session_ID
+INTO
+LockChain
+FROM
+sys.dm_exec_requests
+WHERE
+Blocking_Session_ID <> 0
+
+--list the locking chain
+SELECT
+t.*,s.host_name,s.program_name,s.login_name,s.nt_user_name
+FROM
+LockChain l
+CROSS APPLY
+fn_GetLockChainSubTree(l.Blocker) as t
+INNER JOIN
+sys.dm_exec_sessions s
+ON
+l.blocker = s.session_id
+WHERE
+l.blocker NOT IN (
+SELECT
+blocked
+FROM
+LockChain
+)
+
+--report any dead lock
+SELECT 
+'Dead Lock' = 'Dead Lock'
+,*
+FROM 
+LockChain
+WHERE
+blocker IN (
+SELECT DISTINCT
+blocked
+FROM
+LockChain
+)
+AND
+blocked IN (
+SELECT DISTINCT
+blocker
+FROM
+LockChain
+)
+
+--clean up    
+DROP TABLE LockChain
+DROP FUNCTION dbo.fn_GetLockChainSubTree
+
+-- -----------------------------------------------
+-- End of Core processing
+-- -----------------------------------------------
+--***************************************** End of Main section **********************************
+
+
+
+
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

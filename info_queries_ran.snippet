@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_queries_ran</Title>
+      <Shortcut>info_queries_ran</Shortcut>
+      <Description>Queries Ran</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[SELECT TOP 100 dest.TEXT AS [Query]
+	,deqs.execution_count [Count]
+	,deqs.last_execution_time AS [Time]
+FROM sys.dm_exec_query_stats AS deqs
+CROSS APPLY sys.dm_exec_sql_text(deqs.sql_handle) AS dest
+ORDER BY deqs.last_execution_time DESC]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

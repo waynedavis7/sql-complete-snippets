@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>column_exists</Title>
+      <Shortcut>column_exists</Shortcut>
+      <Description>Check for column</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>columname</ID>
+          <ToolTip>Column Name</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>tablename</ID>
+          <ToolTip>Table Name </ToolTip>
+        </Literal>
+        <Literal>
+          <ID>notfound</ID>
+          <ToolTip>Column not found</ToolTip>
+          <Default>print 'not found'</Default>
+        </Literal>
+        <Literal>
+          <ID>found</ID>
+          <ToolTip>column found</ToolTip>
+          <Default>PRINT 'Successful, Column already exists'</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE Trident
+
+IF NOT EXISTS (
+		SELECT *
+		FROM sys.columns
+		WHERE NAME = N'$columname$'
+			AND Object_ID = Object_ID(N'$tablename$')
+		)
+BEGIN
+	$notfound$
+END
+ELSE
+        $found$
+BEGIN
+	
+END]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

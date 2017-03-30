@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>codes_backup</Title>
+      <Shortcut>codes_backup</Shortcut>
+      <Description>Back up PCA.Codes</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE PCA
+
+IF OBJECT_ID('dbo.CodesTmp') IS NOT NULL
+  	DROP TABLE dbo.CodesTmp;
+
+SELECT * INTO CodesTmp FROM Codes c]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_change_script_identity</Title>
+      <Shortcut>gen_change_script_identity</Shortcut>
+      <Description>gen_change_script_identity</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Linked Server</ID>
+          <ToolTip>Linked Server</ToolTip>
+          <Default>Linked Server</Default>
+        </Literal>
+        <Literal>
+          <ID>Database</ID>
+          <ToolTip>Database</ToolTip>
+          <Default>Database</Default>
+        </Literal>
+        <Literal>
+          <ID>Schema</ID>
+          <ToolTip>Schema</ToolTip>
+          <Default>Schema</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[Declare @LinkedServer varchar(60);
+Declare @Schema varchar(30);
+Declare @Database varchar(30);
+DECLARE @crlf VARCHAR(2);
+DECLARE @script VARCHAR(MAX);
+
+--Modify As Needed--
+USE PCA;
+SET @LinkedServer = 'PCAWLLSQL01'
+SET @Database = 'PCA';
+SET @Schema = 'dbo';
+--------------------
+
+SET @crlf = CHAR(13) + CHAR(10);
+SET @script = 'USE ' + @Database + ';'
+
+SELECT @script = @script + @crlf + @crlf +
+'TRUNCATE TABLE ' + '[' + @Schema + '].[' + t.name + '];' + @crlf +
+CASE 
+       -- Has identity column and also deals with computed columns.
+       WHEN (SELECT COUNT(*) FROM sys.all_columns tmp WHERE tmp.object_id = t.object_id AND tmp.is_identity = 1) > 0 THEN
+              --Identity Insert On
+              'SET IDENTITY_INSERT ' + '[' + @Schema + '].[' + t.name + '] ON;' + @crlf
+
+              --Insert Piece
+              + 'INSERT INTO ' + '[' + @Schema + '].[' + t.name + '] (' +
+              SUBSTRING(STUFF((SELECT '[' + name + '], ' FROM sys.all_columns c WHERE c.object_id = t.object_id AND c.is_computed = 0 FOR XML PATH('')), 1, 0, ''), 1, LEN(STUFF((SELECT '[' + name + '], ' FROM sys.all_columns c WHERE c.object_id = t.object_id AND c.is_computed = 0 FOR XML PATH('')), 1, 0, '')) - 1)   --Get Columns
+              + ')' + @crlf
+
+              --SELECT Piece
+              + 'SELECT ' + SUBSTRING(STUFF((SELECT '[' + name + '], ' FROM sys.all_columns c WHERE c.object_id = t.object_id AND c.is_computed = 0 FOR XML PATH('')), 1, 0, ''), 1, LEN(STUFF((SELECT '[' + name + '], ' FROM sys.all_columns c WHERE c.object_id = t.object_id AND c.is_computed = 0 FOR XML PATH('')), 1, 0, '')) - 1)   --Get Columns
+              + ' FROM ' + + '[' + @LinkedServer + '].[' + @Database + '].[' + @Schema + '].[' + t.name + '];' + @crlf
+
+              --Identity Insert Off
+              + 'SET IDENTITY_INSERT ' + '[' + @Schema + '].[' + t.name + '] OFF;'
+
+       -- Has only computed columns
+       WHEN (SELECT COUNT(*) FROM sys.all_columns tmp WHERE tmp.object_id = t.object_id AND tmp.is_computed = 1) > 0 THEN
+              --Insert Piece
+              + 'INSERT INTO ' + '[' + @Schema + '].[' + t.name + '] (' +
+              SUBSTRING(STUFF((SELECT '[' + name + '], ' FROM sys.all_columns c WHERE c.object_id = t.object_id AND c.is_computed = 0 FOR XML PATH('')), 1, 0, ''), 1, LEN(STUFF((SELECT '[' + name + '], ' FROM sys.all_columns c WHERE c.object_id = t.object_id AND c.is_computed = 0 FOR XML PATH('')), 1, 0, '')) - 1)   --Get Columns
+              + ')' + @crlf
+
+              --SELECT Piece
+              + 'SELECT ' + SUBSTRING(STUFF((SELECT '[' + name + '], ' FROM sys.all_columns c WHERE c.object_id = t.object_id AND c.is_computed = 0 FOR XML PATH('')), 1, 0, ''), 1, LEN(STUFF((SELECT '[' + name + '], ' FROM sys.all_columns c WHERE c.object_id = t.object_id AND c.is_computed = 0 FOR XML PATH('')), 1, 0, '')) - 1)   --Get Columns
+              + ' FROM ' + + '[' + @LinkedServer + '].[' + @Database + '].[' + @Schema + '].[' + t.name + '];' + @crlf
+
+       -- No identity column
+       ELSE
+              --Insert Piece
+              'INSERT INTO ' + '[' + @Schema + '].[' + t.name + ']' + @crlf
+
+              --SELECT Piece
+              + 'SELECT * FROM ' + '[' + @LinkedServer + '].[' + @Database + '].[' + @Schema + '].[' + t.name + '];'
+END
+FROM sys.tables t INNER JOIN sys.schemas s ON s.schema_id = t.schema_id
+WHERE s.schema_id = schema_id(@Schema)
+
+select cast (@script as xml)
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

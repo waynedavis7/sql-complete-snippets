@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_table_to_stored_proc</Title>
+      <Shortcut>info_table_to_stored_proc</Shortcut>
+      <Description>Get table references for stored procedures</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[WITH TableList_CTE (TableName)
+AS
+(
+SELECT TABLE_NAME + CHAR(32) as TableName
+   FROM INFORMATION_SCHEMA.TABLES T
+  WHERE t.TABLE_TYPE='BASE TABLE'
+ )
+SELECT TableName,OBJECT_NAME(object_id) as StoredProcedure
+	FROM  sys.sql_modules S
+	Join TableList_CTE on 1=1
+    WHERE objectproperty(object_id,'IsProcedure') = 1
+    AND CHARINDEX(TableName,Definition,0)<>0
+  Order by TableName]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

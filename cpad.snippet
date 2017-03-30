@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>cpad</Title>
+      <Shortcut>cpad</Shortcut>
+      <Description>Pad Char Align</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Field</ID>
+          <ToolTip>Field</ToolTip>
+          <Default>Field</Default>
+        </Literal>
+        <Literal>
+          <ID>Length</ID>
+          <ToolTip>Length</ToolTip>
+          <Default>Length</Default>
+        </Literal>
+        <Literal>
+          <ID>Align</ID>
+          <ToolTip>Align</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>Char</ID>
+          <ToolTip>Char</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>ColumnName</ID>
+          <ToolTip>ColumnName</ToolTip>
+          <Default>ColumnName</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[dbo.fn_CharPadAlign($Field$, $Length$, $Align$, '') $ColumnName$]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>database_copy</Title>
+      <Shortcut>database_copy</Shortcut>
+      <Description>Copy Database</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>OldDatabase</ID>
+          <ToolTip>Old Database</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>NewDatabase</ID>
+          <ToolTip>New Database</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE MASTER;
+
+BACKUP DATABASE  $OldDatabase$
+TO DISK = 'D:\DBBackups\$OldDatabase$.bak' -- some writeable folder. 
+WITH COPY_ONLY
+
+ALTER DATABASE $OldDatabase$
+SET OFFLINE WITH ROLLBACK IMMEDIATE
+GO
+
+CREATE DATABASE $NewDatabase$
+GO
+
+
+RESTORE DATABASE $NewDatabase$
+--RESTORE FILELISTONLY
+FROM DISK = 'D:\DBBackups\$OldDatabase$.bak'
+WITH
+MOVE '$OldDatabase$'   TO 'D:\Program Files\Microsoft SQL Server\MSSQL11.DEVELOPMENT\MSSQL\DATA\$NewDatabase$.mdf', -- or wherever these live on target
+MOVE '$OldDatabase$_log'   TO 'D:\Program Files\Microsoft SQL Server\MSSQL11.DEVELOPMENT\MSSQL\DATA\$NewDatabase$.ldf',
+REPLACE, RECOVERY
+
+USE $NewDatabase$
+UPDATE Core.RemoteSystems SET [Database] = '$NewDatabase$']]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

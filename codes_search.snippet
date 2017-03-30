@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>search_codes</Title>
+      <Shortcut>search_codes</Shortcut>
+      <Description>Codes File Search</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Criteria</ID>
+          <ToolTip>Criteria</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[
+USE PCA
+
+DECLARE @search  varchar(100)
+SET @search = '%$Criteria$%'
+
+SELECT a.Description +' | '+ cg.Description +' | '+   ch.Description 
+
+   + ISNULL( ' | '+ c.Description  , '')
+   + CASE 
+   WHEN ch.Type = 'S' THEN ' (Standard)'
+   WHEN ch.Type = 'A' THEN ' (Add)'
+   WHEN ch.Type = 'E' THEN ' (Edit)'
+   END
+   , ch.CodeHeaderId, c.CodeId
+   , ISNULL(  CASE WHEN c.ReturnType = 'S' THEN c.StringValue
+                  WHEN c.ReturnType = 'N' THEN CONVERT(varchar(50), ISNULL( c.NumericValue,0))
+                  WHEN c.ReturnType = 'B' AND c.BooleanValue = 1 THEN 'TRUE'
+                  WHEN c.ReturnType = 'B' AND c.BooleanValue = 0 THEN 'FALSE'
+                 END ,'') [Value]
+   , ISNULL(  CASE WHEN c.ReturnType = 'S' THEN 'UPDATE pca.dbo.codes SET StringValue = ''' + c.StringValue + ''' WHERE ApplicationId=''' + c.ApplicationId + ''' AND CodeHeaderid=''' + c.codeHeaderId + '''  AND CodeId=''' + c.codeid + ''' '
+                  WHEN c.ReturnType = 'N' THEN  'UPDATE pca.dbo.codes SET NumericValue = ' +  CONVERT(VARCHAR(50), ISNULL( c.NumericValue,0)) + ' WHERE ApplicationId=''' + c.ApplicationId + ''' AND CodeHeaderid=''' + c.codeHeaderId + '''  AND CodeId=''' + c.codeid + ''' '
+                  WHEN c.ReturnType = 'B' AND c.BooleanValue = 1 THEN  'UPDATE pca.dbo.codes SET BooleanValue = 1 WHERE ApplicationId=''' + c.ApplicationId + ''' AND CodeHeaderid=''' + c.codeHeaderId + '''  AND CodeId=''' + c.codeid + ''' '
+                  WHEN c.ReturnType = 'B' AND c.BooleanValue = 0 THEN 'UPDATE pca.dbo.codes SET BooleanValue = 0 WHERE ApplicationId=''' + c.ApplicationId + ''' AND CodeHeaderid=''' + c.codeHeaderId + '''  AND CodeId=''' + c.codeid + ''' '
+                  END ,'') [UpdateSQL]
+   , 'INSERT INTO pca.dbo.Codes (Plant, ApplicationId, CodeHeaderId, CodeId, Description, ReturnType, StringValue, NumericValue, BooleanValue, Encoded, Exclude, Inactive, ModifyUser, ModifyTimeStamp) ' + 
+      'SELECT ' + convert(VARCHAR,c.plant) + ',''' + c.ApplicationId + ''',''' + c.CodeHeaderId + ''',''' + c.CodeId + ''',''' + c.Description + ''',''' + c.ReturnType + ''',''' + c.StringValue + ''',' + convert(VARCHAR(200), c.NumericValue) + ',' + CONVERT(VARCHAR, c.booleanValue) + ',' + CONVERT(VARCHAR, c.Encoded) + ',' + CONVERT(VARCHAR, c.Exclude) + ',' + CONVERT(VARCHAR, c.Inactive) + ',''' + CONVERT(VARCHAR(50), c.ModifyUser) + ''',''' + CONVERT(VARCHAR(50), c.ModifyTimeStamp) + ''''  InsertSQL
+
+
+
+FROM AppSettings.dbo.Applications a
+INNER JOIN dbo.CodeGroups cg
+ON a.ID = cg.ApplicationId
+INNER JOIN dbo.CodeHeaders ch
+ON ch.ApplicationId = cg.ApplicationId
+AND ch.GroupId = cg.CodeGroupId
+LEFT JOIN dbo.Codes c
+ON ch.ApplicationId = c.ApplicationId
+AND ch.CodeHeaderId = c.CodeHeaderId
+
+
+
+
+
+WHERE (c.CodeHeaderId LIKE @search
+OR c.CodeId  LIKE @search
+OR c.Description LIKE @search
+OR a.ID LIKE @search
+OR ch.Description LIKE @search
+)
+
+ORDER BY c.ModifyTimeStamp DESC
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

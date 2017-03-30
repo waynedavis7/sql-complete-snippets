@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_print</Title>
+      <Shortcut>gen_print</Shortcut>
+      <Description>raise error print</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Message</ID>
+          <ToolTip>print immediately</ToolTip>
+          <Default>&lt;print info here&gt;</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[RAISERROR('$Message$',0,1) WITH NOWAIT]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_changecolumns</Title>
+      <Shortcut>gen_changecolumns</Shortcut>
+      <Description>Generates Change Columns TSQL</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE Trident
+
+SELECT CASE when c.DATA_TYPE = 'bit' THEN 
+               'CASE WHEN c.' + c.COLUMN_NAME +'<> previous.' + c.COLUMN_NAME +' THEN CONCAT(@crlf,''' + c.COLUMN_NAME +''', @crlf + @tab, @B, IIF(previous.' + c.COLUMN_NAME +'= 0,'' FALSE'', '' TRUE''), @crlf, @tab, @A , IIF(c.' + c.COLUMN_NAME +'= 0,'' FALSE'', '' TRUE'')) END,'
+          ELSE 'CASE WHEN c.' + c.COLUMN_NAME +'<> previous.' + c.COLUMN_NAME +' THEN CONCAT(@crlf,''' + c.COLUMN_NAME +''', @crlf + @tab, @B, previous.' + c.COLUMN_NAME +', @crlf, @tab, @A , c.' + c.COLUMN_NAME +') END,' END 
+ FROM INFORMATION_SCHEMA.COLUMNS c WHERE TABLE_NAME = 'StockItems'
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

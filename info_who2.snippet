@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_who2</Title>
+      <Shortcut>info_who2</Shortcut>
+      <Description>info_who2</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[/* SSMSBoost
+Event: DocumentExecuted
+Event date: 2017-02-28 13:04:54
+Connection: pcavalsql01.OperationsView (WinAuth)
+*/
+IF OBJECT_ID('tempdb.dbo.#who2') IS NOT NULL
+	DROP TABLE #who2
+GO
+
+create TABLE #who2 (
+    SPID INT,
+    [Status] VARCHAR(200),
+    [Login] VARCHAR(200),
+    HostName varchar(200),
+    BlkBy VARCHAR(200),
+    DBName varchar(200),
+    Command VARCHAR(200),
+    CPUTime BIGINT,
+    DiskIO BIGINT,
+    LastBatch varchar(200),
+    ProgramName varchar(200),
+    SPID1 INT,
+    RequestId int
+)
+
+INSERT INTO #who2
+EXEC sys.sp_who2
+
+ALTER table #who2 
+add inputbuffer1 varchar(MAX), inputbuffer2 varchar(MAX)
+
+update #who2
+SET inputbuffer1 = 'dbcc inputbuffer(' + convert(varchar,spid) + ')',
+    inputbuffer2 = 'dbcc inputbuffer(' + blkby + ')'
+
+select * from #who2
+--where spid = 260
+order BY spid
+
+--WHERE BlkBy <> '  .'
+
+
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

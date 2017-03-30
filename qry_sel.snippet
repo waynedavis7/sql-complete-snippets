@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>qry_sel</Title>
+      <Shortcut>qry_sel</Shortcut>
+      <Description>Select Query</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>DB</ID>
+          <ToolTip>Datatbase</ToolTip>
+          <Default>Trident</Default>
+        </Literal>
+        <Literal>
+          <ID>Schema</ID>
+          <ToolTip>Schema</ToolTip>
+          <Default>Business</Default>
+        </Literal>
+        <Literal>
+          <ID>Table</ID>
+          <ToolTip>Table</ToolTip>
+          <Default>table</Default>
+        </Literal>
+        <Literal>
+          <ID>EnableWhere</ID>
+          <ToolTip>Enable Where</ToolTip>
+          <Default>--</Default>
+        </Literal>
+        <Literal>
+          <ID>WhereField</ID>
+          <ToolTip>Where Field</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>Operator</ID>
+          <ToolTip>Equals</ToolTip>
+          <Default>=</Default>
+        </Literal>
+        <Literal>
+          <ID>Criteria</ID>
+          <ToolTip>Criteria</ToolTip>
+          <Default>''</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[Use $DB$
+
+SELECT * FROM $Schema$.$Table$
+$EnableWhere$WHERE $WhereField$ $Operator$ '$Criteria$']]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

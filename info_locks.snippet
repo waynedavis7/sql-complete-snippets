@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_locks</Title>
+      <Shortcut>info_locks</Shortcut>
+      <Description>Lock Information</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[SELECT 
+        t1.resource_type,
+        t1.resource_database_id,
+        t1.resource_associated_entity_id,
+        t1.request_mode,
+        t1.request_session_id,
+        t2.blocking_session_id
+    FROM sys.dm_tran_locks as t1
+    INNER JOIN sys.dm_os_waiting_tasks as t2
+        ON t1.lock_owner_address = t2.resource_address;]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

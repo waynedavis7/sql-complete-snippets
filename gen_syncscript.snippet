@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_syncscript</Title>
+      <Shortcut>gen_syncscript</Shortcut>
+      <Description>Generate Sync Script</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Schema</ID>
+          <ToolTip>Schema</ToolTip>
+          <Default>Business</Default>
+        </Literal>
+        <Literal>
+          <ID>Table</ID>
+          <ToolTip>Table</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE Trident
+
+
+DECLARE @Schema VARCHAR(100);
+DECLARE @TableName VARCHAR(100);
+
+SET @Schema = '$Schema$';
+SET @TableName = '$Table$';
+
+DECLARE @crlf VARCHAR(2)
+SET @crlf = CHAR(13) + CHAR(10)
+
+DECLARE @script VARCHAR(MAX);
+SET @script = 'USE Trident' + @crlf + @crlf
+
+SELECT @script = COALESCE(@script, '') + 'TRUNCATE TABLE ' + @Schema + '.' + name + @crlf FROM sys.tables
+WHERE name LIKE  '%' + @TableName + '%'  and SCHEMA_NAME(Schema_id) = @Schema
+
+SET @script = @script +  @crlf + @crlf
+
+SELECT @script = COALESCE(@script, '') + 'INSERT INTO ' + @Schema + '.' + name + @crlf 
++ 'SELECT * FROM  [%%LINKEDSERVER%%].Trident.' + @Schema + '.' + name + @crlf + @crlf
+FROM sys.tables
+WHERE name LIKE '%' + @TableName +  '%' and SCHEMA_NAME(Schema_id) = @Schema
+
+select cast (@script as xml)]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

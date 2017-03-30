@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_trace</Title>
+      <Shortcut>info_trace</Shortcut>
+      <Description>Trace File Instance Info</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[SELECT SERVERPROPERTY('ComputerNamePhysicalNetBIOS') AS [CurrentNodeName] 
+SELECT* FROM sys.configurations WHERE configuration_id = 1568
+SELECT * FROM  sys.fn_trace_getinfo(NULL)]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

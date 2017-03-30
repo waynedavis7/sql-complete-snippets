@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_table</Title>
+      <Shortcut>info_table</Shortcut>
+      <Description>Query Manager Table Information</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>database</ID>
+          <ToolTip>Use database</ToolTip>
+          <Default>Trident</Default>
+        </Literal>
+        <Literal>
+          <ID>table</ID>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[--@TAG:DB2 Column Query
+--@TAG:Schema Build
+USE $database$
+
+SELECT ROW_NUMBER() OVER (
+		ORDER BY c.OBJECT_ID
+			,column_id ASC
+		) AS Row
+	,SCHEMA_NAME(sys.tables.schema_id) + '.' + OBJECT_NAME(c.OBJECT_ID) [Schema.TableName] --OBJECT_NAME(c.OBJECT_ID) [Table]
+	,c.NAME [Column]
+	,ISNULL((
+			SELECT TOP 1 'P'
+			FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS A
+			JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON A.TABLE_NAME = K.TABLE_NAME
+				AND A.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG
+				AND A.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA
+				AND A.CONSTRAINT_NAME = K.CONSTRAINT_NAME
+			WHERE A.CONSTRAINT_TYPE = 'PRIMARY KEY'
+				AND K.COLUMN_NAME = c.NAME
+				AND K.TABLE_NAME = OBJECT_NAME(c.OBJECT_ID)
+			), '') 'Key'
+	--	,c.NAME COLUMN_TEXT
+	--	,'' TABLE_OWNER
+	,replace(t.NAME, 'uniqueidentifier', 'GUID') [Data Type]
+	--      ,column_id ORDINAL_POSITION
+	,CASE 
+		WHEN t.NAME = 'nvarchar'
+			THEN c.max_length / 2
+		ELSE IIF(c.max_length = - 1, 8000, c.max_length)
+		END Length
+	--	,c.NAME [Column Name]
+	,c.scale Scale
+	,IIF(c.is_nullable = 1, 'Y', '') [Null]
+	--	,c.max_length STORAGE
+	--	,c.precision NUMERIC_PRECISION
+	,Replace(Replace(Replace(Replace(IsNull(object_definition(c.default_object_id), ''), '(', ''), ')', ''), 'getdate', 'TIMESTAMP'), '00000000-0000-0000-0000-000000000000', 'Empty GUID') [Default]
+	,DB_NAME() [Database]
+	,ISNULL(q.ToString, '') 'Column Information'
+	,CASE 
+		WHEN q.Required IS NULL
+			THEN 'No'
+		ELSE IIF(q.Required = 1, 'Yes', 'No')
+		END 'Required'
+FROM sys.columns AS c
+LEFT JOIN sys.types AS t ON c.user_type_id = t.user_type_id
+LEFT JOIN sys.tables ON c.object_id = sys.tables.object_id
+LEFT JOIN QueryManager.dbo.ColumnInfo q ON OBJECT_NAME(c.OBJECT_ID) = q.[Table]
+	AND c.NAME = q.[Column]
+	AND q.[Database] = DB_NAME()
+WHERE OBJECT_NAME(c.OBJECT_ID) = '$table$'
+ORDER BY c.OBJECT_ID
+	,column_id ASC;
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

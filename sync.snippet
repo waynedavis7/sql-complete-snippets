@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>sync</Title>
+      <Shortcut>sync</Shortcut>
+      <Description>Call conversion stored procedure</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE Trident
+
+UPDATE Conversion.SyncTables SET Inactive = 0 WHERE TableName = '<tablename, varchar(50), ''>'
+
+SELECT * FROM Conversion.SyncTables WHERE Inactive = 0;
+
+--EXEC Conversion.proc_SyncDatabaseFromLinkedSQLServer	@SourceLinkedServer = 'pcadersql01',
+--		]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

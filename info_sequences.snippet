@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_sequences</Title>
+      <Shortcut>info_sequences</Shortcut>
+      <Description>Sequences</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[use trident
+
+
+--sp_who2
+--dbcc INPUTBUFFER(162  ) 
+USE Trident
+
+;WITH cte AS 
+(SELECT current_value
+	,CASE 
+		WHEN NAME = 'RecycleTicketNumber'
+			THEN (
+					SELECT MAX(TicketNumber)
+					FROM Business.RecyclePurchasedMaterials
+					)
+	     WHEN name= 'RecycleSupplyVendorIds' then 
+		    (SELECT MAX(suppliernumber) FROM Business.RecycleSupplyVendors)
+		when name= 'StockItemTransactionSequence' then 
+		    (SELECT MAX(Sequence) FROM Business.StockItemTransactions)
+	     WHEN name = 'GeneralLedgerTransactionSequence' then
+		   (SELECT MAX(sequence) FROM Business.GeneralLedgerTransactions)
+		WHEN name= 'StockItemPickTicketsSequence' THEN 
+		    (SELECT MAX(PickTicketNumber) FROM Business.StockItemPickTickets)
+		ELSE 0
+		END maxtablevalue
+	,name
+	,schema_name(schema_id) scheme 
+
+FROM sys.sequences
+)
+SELECT *,'ALTER SEQUENCE ' + scheme +  '.' + name + ' restart with ' + convert(VARCHAR,ISNULL(maxtablevalue,0)+1) 
+FROM cte
+where current_value < maxtablevalue
+
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
