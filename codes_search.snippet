@@ -44,6 +44,7 @@ SELECT a.Description +' | '+ cg.Description +' | '+   ch.Description
                   END ,'') [UpdateSQL]
    , 'INSERT INTO pca.dbo.Codes (Plant, ApplicationId, CodeHeaderId, CodeId, Description, ReturnType, StringValue, NumericValue, BooleanValue, Encoded, Exclude, Inactive, ModifyUser, ModifyTimeStamp) ' + 
       'SELECT ' + convert(VARCHAR,c.plant) + ',''' + c.ApplicationId + ''',''' + c.CodeHeaderId + ''',''' + c.CodeId + ''',''' + c.Description + ''',''' + c.ReturnType + ''',''' + c.StringValue + ''',' + convert(VARCHAR(200), c.NumericValue) + ',' + CONVERT(VARCHAR, c.booleanValue) + ',' + CONVERT(VARCHAR, c.Encoded) + ',' + CONVERT(VARCHAR, c.Exclude) + ',' + CONVERT(VARCHAR, c.Inactive) + ',''' + CONVERT(VARCHAR(50), c.ModifyUser) + ''',''' + CONVERT(VARCHAR(50), c.ModifyTimeStamp) + ''''  InsertSQL
+   , 'SELECT * FROM PCA.DBO.CODES WHERE ApplicationId=''' + c.ApplicationId + ''' AND CodeHeaderid=''' + c.codeHeaderId + '''  AND CodeId=''' + c.codeid + ''' ' selectsql
 
 
 
