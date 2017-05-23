@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>disable_transmissions</Title>
+      <Shortcut>disable_transmissions</Shortcut>
+      <Description>Disable Transmissions</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[IF @@SERVERNAME LIKE '%DEVELOPMENT%'
+BEGIN
+
+----update remote systems table for production server name
+       Update Trident.Core.RemoteSystems
+       Set           DefaultSystem = 0,
+                     ProductionSystem = 0
+    
+
+       ----update remote systems table for development server name
+       Update Trident.Core.RemoteSystems
+       Set           DefaultSystem = 1, 
+                     ProductionSystem = 0
+       Where ServerName = 'localhost\development'-- @@SERVERNAME
+
+       ----disable transmissions
+       Update PCA.dbo.Codes
+       Set    BooleanValue = 1, 
+                     ModifyUser = Case When Len(suser_name()) > 10 Then Substring(suser_name(),4,10) Else suser_name() end,
+                     ModifyTimeStamp = Convert(Varchar,GetDate(),120)
+       where  ApplicationId = 'TRICORE'
+                     AND CodeHeaderId = 'ISERIESVARS'
+                     AND CodeId = 'DISABLETX'
+
+					 SELECT * from Trident.core.RemoteSystems rs
+					 SELECT * from pca.dbo.codes 
+					 where  ApplicationId = 'TRICORE'
+                     AND CodeHeaderId = 'ISERIESVARS'
+                     AND CodeId = 'DISABLETX'
+
+
+END
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

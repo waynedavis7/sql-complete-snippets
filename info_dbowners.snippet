@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_dbowners</Title>
+      <Shortcut>info_dbowners</Shortcut>
+      <Description>Db Owners</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[select  'USE ' + name + '
+ GO ' + CHAR(13) + CHAR(10) +' EXEC sp_changedbowner ''sa''' + CHAR(13) + CHAR(10)  + ' GO ',suser_sname(owner_sid), name from sys.databases
+WHERE suser_sname(owner_sid) not in ( 'sa', 'pca')
+
+
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

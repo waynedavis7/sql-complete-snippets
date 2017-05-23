@@ -12,12 +12,7 @@
     </Header>
     <Snippet>
       <Declarations />
-      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[use trident
-
-
---sp_who2
---dbcc INPUTBUFFER(162  ) 
-USE Trident
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE Trident
 
 ;WITH cte AS 
 (SELECT current_value
@@ -35,6 +30,19 @@ USE Trident
 		   (SELECT MAX(sequence) FROM Business.GeneralLedgerTransactions)
 		WHEN name= 'StockItemPickTicketsSequence' THEN 
 		    (SELECT MAX(PickTicketNumber) FROM Business.StockItemPickTickets)
+
+		    WHEN name= 'BasicCareInspectionHistorySequence' THEN 
+		    (SELECT MAX(bcih.SessionId) FROM Maintenance.BasicCareInspectionHistory bcih)
+
+		        WHEN name= 'WorkOrderNumberSequence' THEN 
+		    ((SELECT ISNULL( max(a),0) [Number] FROM 
+(SELECT MAX(wo.WorkOrderNumber) AS A FROM Maintenance.WorkOrders wo
+UNION
+SELECT MAX(wr.WorkRequestNumber) AS A FROM Maintenance.WorkRequests wr
+) AS [R]))
+
+
+
 		ELSE 0
 		END maxtablevalue
 	,name
@@ -44,10 +52,7 @@ FROM sys.sequences
 )
 SELECT *,'ALTER SEQUENCE ' + scheme +  '.' + name + ' restart with ' + convert(VARCHAR,ISNULL(maxtablevalue,0)+1) 
 FROM cte
-where current_value < maxtablevalue
-
-
-]]></Code>
+WHERE current_value <> ISNULL(maxtablevalue,0)+1 ]]></Code>
     </Snippet>
   </CodeSnippet>
 </CodeSnippets>

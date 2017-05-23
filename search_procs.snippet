@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>search_procs</Title>
+      <Shortcut>search_procs</Shortcut>
+      <Description>Search Procedures</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Database</ID>
+          <Default>Trident</Default>
+        </Literal>
+        <Literal>
+          <ID>Search</ID>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE $Database$
+
+/*This is an easy way to look through the sources of all objects in the database
+if you need to find particular string. This script can be used, for example,
+to find references of some specific object by other objects. Depending on the
+size of your database you might want to limit the search scope to particular 
+object type. Just comment unneeded object types in WHERE statement.
+Enter search string between %% marks in @SearchPattern initialisation statement.
+When you get the results you can copy object name from "FullName" column and
+use SSMSBoost to quickly locate it in the object explorer, or you can continue
+searching in results using "Find in ResultsGrid" function.
+ 
+This script is provided to you by SSMSBoost as is. Improvements and comments are welcome.
+Redistribution with reference to SSMSBoost project website is welcome.
+SSMSBoost team, 2014
+*/
+DECLARE @SearchPattern NVARCHAR(128)
+
+SET @SearchPattern = '%$Search$%'
+
+SELECT SCHEMA_NAME(o.schema_id) as [schema]
+,      o.[name]
+,      '['+SCHEMA_NAME(o.schema_id)+'].['+o.[name]+']' as [FullName]
+, CASE WHEN o.[type] = 'P' THEN 'EXEC sp_helptext ''' +  '['+SCHEMA_NAME(o.schema_id)+'].['+o.[name]+']'  + ''' ' ELSE '' END [GetSource]
+FROM sys.objects AS o
+WHERE (lower(OBJECT_DEFINITION(o.object_id)) LIKE lower(@SearchPattern) OR object_name(o.object_id) like @SearchPattern)
+	AND o.[type] = 'P'--- = View]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
