@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_ddl_audit</Title>
+      <Shortcut>gen_ddl_audit</Shortcut>
+      <Description />
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>database</ID>
+          <Default>database</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE $database$
+GO
+
+/****** Object:  Table [dbo].[DDLChanges]    Script Date: 5/24/2017 10:29:31 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[DDLChanges](
+	[Id] [bigint] IDENTITY(1,1) NOT NULL,
+	[PostTime] [datetime] NOT NULL,
+	[DatabaseName] [varchar](500) NULL,
+	[Event] [varchar](max) NULL,
+	[ObjectName] [varchar](1000) NULL,
+	[TSQL] [varchar](max) NULL,
+	[Login] [varchar](500) NULL,
+	[HostName] [varchar](500) NULL,
+ CONSTRAINT [PK_DDLChanges] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC,
+	[PostTime] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+
+
+USE $database$
+GO
+
+/****** Object:  DdlTrigger [AuditProcChanges]    Script Date: 5/24/2017 10:29:36 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TRIGGER [AuditProcChanges]
+ON DATABASE 
+FOR CREATE_PROCEDURE, ALTER_PROCEDURE, DROP_PROCEDURE, CREATE_TABLE, ALTER_TABLE, DROP_TABLE
+AS
+
+DECLARE @ed XML
+SET @ed = EVENTDATA()
+
+INSERT INTO DDLChanges (PostTime, DatabaseName, [Event], ObjectName, [TSQL], [Login],HostName) 
+VALUES
+(
+	GetDate(),
+	@ed.value('(/EVENT_INSTANCE/DatabaseName)[1]', 'varchar(500)'),
+	@ed.value('(/EVENT_INSTANCE/EventType)[1]', 'nvarchar(MAX)'),
+	@ed.value('(/EVENT_INSTANCE/ObjectName)[1]', 'varchar(1000)'),
+	@ed.value('(/EVENT_INSTANCE/TSQLCommand)[1]', 'nvarchar(MAX)'),
+	@ed.value('(/EVENT_INSTANCE/LoginName)[1]', 'varchar(500)'),
+	HOST_NAME()
+) 
+
+
+
+
+
+
+GO
+
+ENABLE TRIGGER [AuditProcChanges] ON DATABASE
+GO
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
