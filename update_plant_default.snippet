@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>update_plant_default</Title>
+      <Shortcut>update_plant_default</Shortcut>
+      <Description>update default plant</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Plant</ID>
+          <ToolTip>Default Plant</ToolTip>
+          <Default>0</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE AppSettings
+
+UPDATE Configuration
+SET NumericValue = $Plant$
+WHERE Application = 'general'
+AND Setting = 'plant']]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

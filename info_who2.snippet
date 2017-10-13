@@ -11,51 +11,113 @@
       </SnippetTypes>
     </Header>
     <Snippet>
-      <Declarations />
-      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[/* SSMSBoost
-Event: DocumentExecuted
-Event date: 2017-02-28 13:04:54
-Connection: pcavalsql01.OperationsView (WinAuth)
-*/
-IF OBJECT_ID('tempdb.dbo.#who2') IS NOT NULL
+      <Declarations>
+        <Literal>
+          <ID>ShowBlockedOnly</ID>
+          <ToolTip>Show Blocked Only</ToolTip>
+          <Default>0</Default>
+        </Literal>
+        <Literal>
+          <ID>ShowConnectionStats</ID>
+          <ToolTip>Show Connection Stats</ToolTip>
+          <Default>0</Default>
+        </Literal>
+        <Literal>
+          <ID>ShowCursors</ID>
+          <ToolTip>Show Cursors</ToolTip>
+          <Default>0</Default>
+        </Literal>
+        <Literal>
+          <ID>OrderBy</ID>
+          <ToolTip>Order By Clause</ToolTip>
+          <Default>SPID ASC</Default>
+        </Literal>
+        <Literal>
+          <ID>ExcludeMasterDB</ID>
+          <ToolTip>Exclude Master DB</ToolTip>
+          <Default>1</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[IF OBJECT_ID('tempdb.dbo.#who2') IS NOT NULL
 	DROP TABLE #who2
 GO
 
-create TABLE #who2 (
-    SPID INT,
-    [Status] VARCHAR(200),
-    [Login] VARCHAR(200),
-    HostName varchar(200),
-    BlkBy VARCHAR(200),
-    DBName varchar(200),
-    Command VARCHAR(200),
-    CPUTime BIGINT,
-    DiskIO BIGINT,
-    LastBatch varchar(200),
-    ProgramName varchar(200),
-    SPID1 INT,
-    RequestId int
-)
+DECLARE @ShowBlockedOnly BIT = $ShowBlockedOnly$
+DECLARE @ShowConnectionStats BIT = $ShowConnectionStats$
+DECLARE @ShowCusors BIT = $ShowCursors$
+DECLARE @ExcludeMasterDB BIT = $ExcludeMasterDB$
+DECLARE @OrderBy VARCHAR(100) = '$OrderBy$';
+DECLARE @sql NVARCHAR(MAX);
+
+SET @sql = '
+CREATE TABLE #who2 (
+	SPID INT
+	,[Status] VARCHAR(200)
+	,[Login] VARCHAR(200)
+	,HostName VARCHAR(200)
+	,BlkBy VARCHAR(200)
+	,DBName VARCHAR(200)
+	,Command VARCHAR(200)
+	,CPUTime BIGINT
+	,DiskIO BIGINT
+	,LastBatch VARCHAR(200)
+	,ProgramName VARCHAR(200)
+	,SPID1 INT
+	,RequestId INT
+	)
 
 INSERT INTO #who2
 EXEC sys.sp_who2
 
-ALTER table #who2 
-add inputbuffer1 varchar(MAX), inputbuffer2 varchar(MAX)
+ALTER TABLE #who2 ADD inputbuffer1 VARCHAR(MAX)
+	,inputbuffer2 VARCHAR(MAX)
 
-update #who2
-SET inputbuffer1 = 'dbcc inputbuffer(' + convert(varchar,spid) + ')',
-    inputbuffer2 = 'dbcc inputbuffer(' + blkby + ')'
+UPDATE #who2
+SET inputbuffer1 = ''dbcc inputbuffer('' + convert(VARCHAR, spid) + '')''
+	,inputbuffer2 = ''dbcc inputbuffer('' + blkby + '')''' + ';SELECT *
+FROM #who2
+WHERE ((
+		@ShowBlockedOnly = 1
+		AND BlkBy <> ''  .''
+		)
+	OR (
+		@ShowBlockedOnly = 0
+		AND BlkBy = ''  .''
+		))
+     AND (@ExcludeMasterDB=1 AND DBName<>''master'') OR (@ExcludeMasterDB=0)
 
-select * from #who2
---where spid = 260
-order BY spid
+ORDER BY ' + @OrderBy + 
+	'
+--connection type stats
+IF @ShowConnectionStats = 1
+BEGIN
+	SELECT COUNT(*) ConnectionStatusCount
+		,[Status]
+	FROM #who2
+	GROUP BY [Status]
+END
 
---WHERE BlkBy <> '  .'
+--show cursors
+IF @ShowCusors = 1
+BEGIN
+	SELECT c.session_id
+	,c.properties
+	,c.creation_time
+	,c.is_open
+	,t.TEXT
+	,#who2.*
+FROM sys.dm_exec_cursors(0) c --0 for all cursors running
+CROSS APPLY sys.dm_exec_sql_text(c.sql_handle) t
+LEFT JOIN #who2 ON c.session_id = #who2.SPID
+ORDER BY CPUTime DESC
+END'
 
-
-
-]]></Code>
+EXEC sys.sp_executesql @sql
+	,N'@ShowBlockedOnly BIT,@ShowConnectionStats BIT, @ShowCusors BIT,@ExcludeMasterDB BIT'
+	,@ShowBlockedOnly
+	,@ShowConnectionStats
+	,@ShowCusors
+	,@ExcludeMasterDB]]></Code>
     </Snippet>
   </CodeSnippet>
 </CodeSnippets>

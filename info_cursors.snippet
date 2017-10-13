@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_cursors</Title>
+      <Shortcut>info_cursors</Shortcut>
+      <Description>info_cursors</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[SELECT eST.text AS sql_cmd
+                                      , SUBSTRING
+                                              (
+                                                      eST.text
+                                                      , eC.statement_start_offset / 2
+                                                      ,
+                                              (
+                                                      CASE WHEN eC.statement_end_offset = -1 THEN DATALENGTH(eST.text)
+                                                              ELSE eC.statement_end_offset
+                                                      END - eC.statement_start_offset 
+                                              ) / 2
+                                              ) AS statement_executing 
+                                      , eC.session_id
+                                          , eC.cursor_id
+                                          , eC.name
+                                          , eC.properties
+                                          , eC.statement_start_offset
+                                          , eC.statement_end_offset
+                                          , eC.creation_time
+                                          , eC.worker_time
+                                          , eC.reads
+                                          , eC.writes
+                                          , eC.dormant_duration 
+FROM sys.dm_exec_cursors(0) AS eC 
+                                      CROSS APPLY sys.dm_exec_sql_text(ec.sql_handle) AS eST
+ORDER BY eC.session_id;]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
