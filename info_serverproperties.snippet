@@ -13,7 +13,10 @@
     <Snippet>
       <Declarations />
       <Code Language="SQL Server" Kind="SQL Server"><![CDATA[SELECT SERVERPROPERTY('MachineName') AS [MachineName], 
-
+(SELECT value_in_use FROM sys.configurations WHERE description LIKE '%maximum degree of parallelism%') [maximum degree of parallelism],
+(SELECT value_in_use FROM sys.configurations WHERE description LIKE '%cost threshold for parallelism%') [cost threshold for parallelism],
+(SELECT cpu_count AS logicalCPUs FROM sys.dm_os_sys_info) [CPU Count],
+(SELECT CONCAT(CONVERT(VARCHAR(50),value), ' MB') FROM sys.configurations WHERE name like 'max server memory (MB)') MemorySetting,
 SERVERPROPERTY('ServerName') AS [ServerName], 
 SERVERPROPERTY('InstanceName') AS [Instance],
 SERVERPROPERTY('IsClustered') AS [IsClustered],
@@ -35,7 +38,14 @@ SERVERPROPERTY('FilestreamConfiguredLevel') AS [FilestreamConfiguredLevel],
 SERVERPROPERTY('IsHadrEnabled') AS [IsHadrEnabled],
 SERVERPROPERTY('HadrManagerStatus') AS [HadrManagerStatus],
 SERVERPROPERTY('IsXTPSupported') AS [IsXTPSupported],
-SERVERPROPERTY('BuildClrVersion') AS [Build CLR Version]; ]]></Code>
+SERVERPROPERTY('BuildClrVersion') AS [Build CLR Version],
+(SELECT  COUNT(*) FROM   sys.server_principals p JOIN sys.syslogins s ON p.sid = s.sid WHERE   p.type_desc IN ('SQL_LOGIN', 'WINDOWS_LOGIN', 'WINDOWS_GROUP') AND p.name NOT LIKE '##%' AND s.sysadmin = 1) SysLoginAccounts,
+(SELECT COUNT(*) FROM sys.sysservers) NumberOfLinkedServers
+
+
+
+
+]]></Code>
     </Snippet>
   </CodeSnippet>
 </CodeSnippets>
