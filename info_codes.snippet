@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_codes</Title>
+      <Shortcut>info_codes</Shortcut>
+      <Description>info_codes</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE PCA
+
+:SETVAR source "[VALWRD66673L\DEVELOPMENT]"
+--:SETVAR destination "[pcalaksqld01\development]"
+:SETVAR destination "[pcavalsqld01\development]"
+:SETVAR application "'SMARTS'"
+
+
+IF OBJECT_ID('tempdb.dbo.#codes') IS NOT NULL
+    DROP TABLE #codes
+GO
+
+IF OBJECT_ID('tempdb.dbo.#codeHeaders') IS NOT NULL
+    DROP TABLE #codeHeaders
+GO
+
+IF OBJECT_ID('tempdb.dbo.#codeGroups') IS NOT NULL
+	DROP TABLE #codeGroups
+GO
+
+
+SELECT * INTO #codes FROM $(source).pca.dbo.Codes
+WHERE codeid NOT IN (SELECT codeid FROM $(destination).pca.dbo.codes WHERE applicationid = $(application)) AND ApplicationId = $(application)
+AND CodeHeaderId IN (SELECT codeheaderid FROM $(destination).pca.dbo.codeheaders WHERE applicationid = $(application)) 
+     
+SELECT * INTO #codeHeaders FROM $(source).pca.dbo.CodeHeaders
+WHERE codeheaderid NOT IN (SELECT codeheaderid FROM $(destination).pca.dbo.codeHeaders WHERE applicationid = $(application)) AND ApplicationId = $(application)
+
+SELECT * INTO #codeGroups FROM $(source).pca.dbo.CodeGroups
+WHERE CodeGroupId NOT IN (SELECT CodeGroupId FROM $(destination).pca.dbo.CodeGroups WHERE applicationid = $(application)) AND ApplicationId = $(application)
+
+--INSERT INTO $(destination).pca.dbo.CodeGroups
+SELECT * FROM #codeGroups
+--INSERT INTO $(destination).pca.dbo.codeheaders  
+SELECT * FROM #codeHeaders
+--INSERT INTO $(destination).pca.dbo.Codes
+SELECT * FROM #codes
+
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_constraint</Title>
+      <Shortcut>info_constraint</Shortcut>
+      <Description>info_constraint</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>tablename</ID>
+          <ToolTip>tablename</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>schemaname</ID>
+          <ToolTip>schemaname</ToolTip>
+        </Literal>
+        <Literal>
+          <ID>columnname</ID>
+          <ToolTip>columnname</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE Trident
+-- returns name of a column's default value constraint 
+SELECT
+    Trident.sys.all_columns.name column_name
+   ,default_constraints.name constraint_name
+FROM sys.all_columns
+
+INNER JOIN sys.tables
+    ON all_columns.object_id = tables.object_id
+
+INNER JOIN sys.schemas
+    ON tables.schema_id = schemas.schema_id
+
+INNER JOIN sys.default_constraints
+    ON all_columns.default_object_id = default_constraints.object_id
+
+WHERE schemas.name = '$schemaname$'
+AND tables.name = '$tablename$'
+AND all_columns.name = '$columnname$']]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

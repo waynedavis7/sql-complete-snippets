@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_appversion</Title>
+      <Shortcut>info_appversion</Shortcut>
+      <Description>Latest released version of a specified application</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>ApplicationId</ID>
+          <ToolTip>Application Id</ToolTip>
+          <Default>Trident</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE ApplicationLauncher
+
+IF OBJECT_ID('tempdb.dbo.#releaseLogPlants') IS NOT NULL
+	DROP TABLE #releaseLogPlants
+GO
+
+DECLARE @applicationId AS VARCHAR(20)
+SET @applicationId = '$ApplicationId$'
+
+SELECT DISTINCT Plant
+INTO #releaseLogPlants
+FROM ReleaseLog
+WHERE Plant > 0;
+
+WITH versions
+AS (
+	SELECT *,ROW_NUMBER() OVER (PARTITION BY Plant ORDER BY ReleaseDate DESC) rownumber
+	FROM ReleaseLog
+	WHERE ApplicationId = @applicationId
+	)
+SELECT p.Description Plant
+	,u.FirstName + ' ' + u.LastName ReleasedBy
+	,v.BuildNumber
+	,UPPER(v.ApplicationId) ApplicationId
+	,v.Plant
+	,v.ReleaseDate
+FROM versions v
+INNER JOIN PCA.dbo.Plants p ON v.Plant = p.PlantNumber
+INNER JOIN PCA.dbo.Users u ON v.LanID = CASE 
+		WHEN LEN(RTRIM(LTRIM(v.LanID))) > 10
+			THEN CONVERT(VARCHAR(50), u.UUID)
+		ELSE u.UserName END
+WHERE rownumber = 1
+ORDER BY v.buildnumber desc, v.ReleaseDate]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

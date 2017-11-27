@@ -16,15 +16,35 @@
 (SELECT value_in_use FROM sys.configurations WHERE description LIKE '%maximum degree of parallelism%') [maximum degree of parallelism],
 (SELECT value_in_use FROM sys.configurations WHERE description LIKE '%cost threshold for parallelism%') [cost threshold for parallelism],
 (SELECT cpu_count AS logicalCPUs FROM sys.dm_os_sys_info) [CPU Count],
+(SELECT (physical_memory_kb/1024) /1024 FROM sys.dm_os_sys_info) [OS Physical Memory GB],
 (SELECT CONCAT(CONVERT(VARCHAR(50),value), ' MB') FROM sys.configurations WHERE name like 'max server memory (MB)') MemorySetting,
+(SELECT COUNT(*) FROM tempdb.sys.database_files WHERE [type] =1) NumberOfTempDBLogfiles,
 SERVERPROPERTY('ServerName') AS [ServerName], 
+CASE RIGHT(SUBSTRING(@@VERSION, CHARINDEX('Windows NT', @@VERSION), 14), 3)
+   WHEN '5.0' THEN 'Windows 2000'
+   WHEN '5.1' THEN 'Windows XP'
+   WHEN '5.2' THEN 'Windows Server 2003/2003 R2'
+   WHEN '6.0' THEN 'Windows Server 2008/Windows Vista'
+   WHEN '6.1' THEN 'Windows Server 2008 R2/Windows 7'
+   WHEN '6.2' THEN 'Windows Server 2012/Windows 8'
+   WHEN '6.3' THEN 'Windows Server 2016/Windows 10'
+   ELSE @@VERSION
+ END AS [WindowsVersionBuild],
 SERVERPROPERTY('InstanceName') AS [Instance],
 SERVERPROPERTY('IsClustered') AS [IsClustered],
 SERVERPROPERTY('ComputerNamePhysicalNetBIOS') AS [ComputerNamePhysicalNetBIOS],
+CASE LEFT(CONVERT(VARCHAR, SERVERPROPERTY('ProductVersion')),4) 
+   WHEN '8.00' THEN 'SQL Server 2000'
+   WHEN '9.00' THEN 'SQL Server 2005'
+   WHEN '10.0' THEN 'SQL Server 2008'
+   WHEN '10.5' THEN 'SQL Server 2008 R2'
+   WHEN '11.0' THEN 'SQL Server 2012'
+   WHEN '12.0' THEN 'SQL Server 2014'
+   ELSE 'SQL Server 2016+'
+  END AS [SQLVersionBuild],
 SERVERPROPERTY('Edition') AS [Edition],
 SERVERPROPERTY('ProductLevel') AS [ProductLevel],                                                       -- What servicing branch (RTM/SP/CU)
 SERVERPROPERTY('ProductUpdateLevel') AS [ProductUpdateLevel],         -- Within a servicing branch, what CU# is applied
-SERVERPROPERTY('ProductVersion') AS [ProductVersion],
 SERVERPROPERTY('ProductMajorVersion') AS [ProductMajorVersion],
 SERVERPROPERTY('ProductMinorVersion') AS [ProductMinorVersion],
 SERVERPROPERTY('ProductBuild') AS [ProductBuild],
@@ -41,6 +61,8 @@ SERVERPROPERTY('IsXTPSupported') AS [IsXTPSupported],
 SERVERPROPERTY('BuildClrVersion') AS [Build CLR Version],
 (SELECT  COUNT(*) FROM   sys.server_principals p JOIN sys.syslogins s ON p.sid = s.sid WHERE   p.type_desc IN ('SQL_LOGIN', 'WINDOWS_LOGIN', 'WINDOWS_GROUP') AND p.name NOT LIKE '##%' AND s.sysadmin = 1) SysLoginAccounts,
 (SELECT COUNT(*) FROM sys.sysservers) NumberOfLinkedServers
+
+
 
 
 
