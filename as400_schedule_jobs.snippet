@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>as400_schedule_jobs</Title>
+      <Shortcut>as400_schedule_jobs</Shortcut>
+      <Description>as400_schedule_jobs</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[EXEC( 'SELECT SCDJOBNAME,SCDDATEV,NXTSUBDATE,SCDTIME,FREQUENCY,
+         DESCRIPTION, command
+    FROM QSYS2.SCHEDULED_JOB_INFO
+   WHERE STATUS = ''SCHEDULED'' and SCDJOBNAME = ''WAYBILLRPT''
+   ORDER BY SCDJOBNAME') AT ISERIES]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
