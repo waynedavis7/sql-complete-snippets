@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>Select Open Query</Title>
+      <Shortcut>sso</Shortcut>
+      <Description>Select Open Query</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>LinkedServer</ID>
+          <ToolTip>Linked Server</ToolTip>
+          <Default>ISERIES</Default>
+        </Literal>
+        <Literal>
+          <ID>TableName</ID>
+          <ToolTip>TableName</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[SELECT * FROM OPENQUERY($LinkedServer$,'SELECT * FROM $TableName$')]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

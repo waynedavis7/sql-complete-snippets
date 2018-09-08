@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>search_columns_all_dbs</Title>
+      <Shortcut>search_columns_all_dbs</Shortcut>
+      <Description>Search all Databases for column name</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>SearchForColumn</ID>
+          <ToolTip>Column To Search For</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[
+IF OBJECT_ID('tempdb.dbo.#dbs') IS NOT NULL
+	DROP TABLE #dbs
+GO
+
+SELECT name dbname INTO #dbs FROM sys.databases
+WHERE database_id > 4  AND state_desc  = 'ONLINE' 
+
+
+IF OBJECT_ID('tempdb.dbo.#columns') IS NOT NULL
+	DROP TABLE #columns
+GO
+
+
+CREATE TABLE #columns (
+dbname VARCHAR(100),
+tablename varchar(100) 
+,columnname VARCHAR(100)
+)
+
+DECLARE @currentName VARCHAR(50);
+DECLARE @sql VARCHAR(MAX);
+DECLARE @ColumnToSearchFor VARCHAR(100) = '$SearchForColumn$'
+WHILE EXISTS (SELECT * FROM #dbs)
+BEGIN
+    SELECT TOP 1 @currentname = dbname FROM #dbs
+    SET @sql = ' INSERT INTO #columns 
+               SELECT ''' + @currentname + ''',TABLE_NAME, COLUMN_NAME FROM [' + @currentName + '].INFORMATION_SCHEMA.columns WHERE COLUMN_NAME like ''%' + @ColumnToSearchFor + '%'''
+        
+    EXEC(@sql)
+    PRINT @sql
+    DELETE FROM #dbs WHERE dbname = @currentName     
+END
+
+SELECT * FROM #columns
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

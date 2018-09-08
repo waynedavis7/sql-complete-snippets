@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_jobs_counts</Title>
+      <Shortcut>info_jobs_counts</Shortcut>
+      <Description>Count of Jobs executions</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[SELECT COUNT(j.name) Job_Count,  
+MIN(h.run_date) Min_Run_Date,
+MAX(h.run_date) Max_Run_Date,
+j.name AS 'Job_Name'
+--run_date,
+--run_time,
+--msdb.dbo.agent_datetime(run_date, run_time) AS 'RunDateTime'
+FROM msdb.dbo.sysjobs j 
+JOIN msdb.dbo.sysjobhistory h ON j.job_id = h.job_id 
+WHERE j.enabled = 1  --Only Enabled Jobs 
+--AND j.name  LIKE '%machine%'
+GROUP BY j.name
+ORDER BY COUNT(j.name) desc	
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

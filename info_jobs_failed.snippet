@@ -50,7 +50,9 @@ FROM     msdb.dbo.sysjobhistory h
            AND h.step_id = s.step_id  
 WHERE    h.run_status = 0 -- Failure  
          AND h.run_date > @FinalDate  
+	    AND j.name NOT IN (N'syspolicy_purge_history', N'collection_set_2_upload')
 ORDER BY h.instance_id DESC  
+
 
 ]]></Code>
     </Snippet>

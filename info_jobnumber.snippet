@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_jobnumber_as400</Title>
+      <Shortcut>info_jobnumber_as400</Shortcut>
+      <Description>AS400 Job # Plan Cache</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>JobNumber</ID>
+          <ToolTip>AS400 JobNumber</ToolTip>
+          <Default>189155</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[DECLARE @JOBNUMBER VARCHAR(50) = '$JobNumber$'
+DECLARE @SQL VARCHAR(MAX); 
+
+--get query plan cache to outfile
+EXEC('CALL QSYS2.DUMP_PLAN_CACHE(''QGPL'', ''PLANDUMP'')') AT ISERIES
+
+--query plan cache and output to QGPL.PLANQRYOUT using jobnumber criteria
+SET @SQL = 'CALL QSYS2.EXTRACT_STATEMENTS(''QGPL'', ''PLANDUMP'', ''*AUDIT'', 
+  ''AND QQJNUM =' + @JOBNUMBER + ''', '' ORDER BY QQSTIM DESC'',''QGPL'',''PLANQRYOUT'')'
+EXEC (@SQL) AT ISERIES
+
+
+--query executed statements from output file
+SELECT * FROM OPENQUERY(ISERIES, 'SELECT * FROM QGPL.PLANQRYOUT')
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
