@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_as400_table_data</Title>
+      <Shortcut>info_as400_table_data</Shortcut>
+      <Description>as400 table data</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Tablename</ID>
+          <ToolTip>table name</ToolTip>
+          <Default>tablename</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[--criteria is case sensitive
+
+SELECT *,
+'SELECT * FROM OPENQUERY(ISERIES, 
+                         ''SELECT DISTINCT  COLUMN_NAME
+					                  ,COLUMN_TEXT
+								   ,TABLE_SCHEMA
+								   ,TABLE_NAME
+								   ,TABLE_OWNER
+								   ,ORDINAL_POSITION
+								   ,DATA_TYPE
+								   ,LENGTH
+								   ,NUMERIC_SCALE
+                           FROM QSYS2.SYSCOLUMNS
+				         WHERE TABLE_SCHEMA = ''''' + table_schema + ''''' AND TABLE_NAME = ''''' + TABLE_NAME	+ ''''' ORDER BY ORDINAL_POSITION'')' Details,
+'SELECT * FROM OPENQUERY(ISERIES, 
+                         ''SELECT * FROM ' + table_schema + '.' + TABLE_NAME + ' FETCH FIRST 10 ROWS ONLY'')' SampleData
+
+
+ FROM OPENQUERY(iseries, 'SELECT TABLE_SCHEMA, TABLE_TEXT, TABLE_NAME
+                               from QSYS2.SYSTABLES WHERE TABLE_NAME LIKE ''%$Tablename$%''')
+
+
+			]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

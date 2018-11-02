@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_copy_400_table_data</Title>
+      <Shortcut>gen_copy_400_table_data</Shortcut>
+      <Description>Copy 400 Table Data</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>TableName</ID>
+          <ToolTip>TableName</ToolTip>
+          <Default>TableName</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE as400
+
+select distinct  t.name [Table]
+
+
+, sch.name
+, 'insert into '+ sch.name  + '.' + t.name + ' select * from openquery(iseries, ''select * from ' + sch.name + '.' + T.name + ''')' script
+
+from sys.tables t
+--inner join sys.columns c 
+--on t.object_id = c.object_id
+--inner join sys.types ty
+--on c.system_type_id = ty.system_type_id
+
+inner join sys.schemas sch
+on sch.schema_id = t.schema_id
+
+
+where t.name like '%$TableName$%' 
+
+
+order by sch.name,  t.name  
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -18,7 +18,10 @@
           <Default>189155</Default>
         </Literal>
       </Declarations>
-      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[DECLARE @JOBNUMBER VARCHAR(50) = '$JobNumber$'
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[--AS400 commands to see open transactions
+--wrkcmtdfn job(*all) status(*xopen)
+
+DECLARE @JOBNUMBER VARCHAR(50) = '$JobNumber$'
 DECLARE @SQL VARCHAR(MAX); 
 
 --get query plan cache to outfile
