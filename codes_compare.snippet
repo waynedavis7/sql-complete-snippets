@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>codes_compare</Title>
+      <Shortcut>codes_compare</Shortcut>
+      <Description>Compare Source and Destination codes</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Source</ID>
+          <ToolTip>Source</ToolTip>
+          <Default>pcawllsqlmc01</Default>
+        </Literal>
+        <Literal>
+          <ID>Destination</ID>
+          <ToolTip>Destination</ToolTip>
+          <Default>[pcawllsqlmcd01\development]</Default>
+        </Literal>
+        <Literal>
+          <ID>Type</ID>
+          <ToolTip>S, MD, or MS</ToolTip>
+          <Default>S</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[
+SET NOCOUNT ON;
+
+:SETVAR source "$Source$"
+:SETVAR dest "$Destination$"
+
+-- S  = Sync
+-- MD = Code record is missing at the destination
+-- MS = Code record is missing at the source
+DECLARE @Type VARCHAR(2) = '$Type$'
+
+IF OBJECT_ID('tempdb.dbo.#applications') IS NOT NULL
+    DROP TABLE #applications
+    ;
+
+IF OBJECT_ID('tempdb.dbo.#sourcecodes') IS NOT NULL
+    DROP TABLE #sourcecodes
+    ;
+
+IF OBJECT_ID('tempdb.dbo.#destinationcodes') IS NOT NULL
+    DROP TABLE #destinationcodes
+    ;
+
+
+
+
+CREATE TABLE #applications (
+    id VARCHAR(100)
+);
+
+INSERT INTO #applications
+    SELECT 'TRIBUS' UNION ALL SELECT 'TRICORE'
+
+
+
+
+--source code records
+SELECT
+    * INTO #sourcecodes
+FROM
+$(source).PCA.dbo.Codes
+WHERE ApplicationId IN (SELECT
+	   id
+    FROM #applications a)
+
+
+--destination code records
+SELECT
+    * INTO #destinationcodes
+FROM
+$(dest).PCA.dbo.Codes
+WHERE ApplicationId IN (SELECT
+	   id
+    FROM #applications a)
+
+
+
+
+
+
+--shows matching 
+IF @Type = 'S'
+BEGIN
+    PRINT 'Source: $(source)  Destination: $(dest)' + CHAR(10) + CHAR(13)
+    PRINT 'This script compares the code entries and lists the differences w/ sync options.'
+    --compare source return values to destination
+    SELECT
+	   '$(source)' Source
+	  ,'$(dest)' Destination
+	  ,ISNULL(CASE
+		  WHEN s.ReturnType = 'S' THEN s.StringValue
+		  WHEN s.ReturnType = 'N' THEN CONVERT(VARCHAR(50), ISNULL(s.NumericValue, 0))
+		  WHEN s.ReturnType = 'B' AND
+			 s.BooleanValue = 1 THEN 'TRUE'
+		  WHEN s.ReturnType = 'B' AND
+			 s.BooleanValue = 0 THEN 'FALSE'
+	   END, '') [SourceValue]
+
+	  ,ISNULL(CASE
+		  WHEN d.ReturnType = 'S' THEN d.StringValue
+		  WHEN d.ReturnType = 'N' THEN CONVERT(VARCHAR(50), ISNULL(d.NumericValue, 0))
+		  WHEN d.ReturnType = 'B' AND
+			 d.BooleanValue = 1 THEN 'TRUE'
+		  WHEN d.ReturnType = 'B' AND
+			 d.BooleanValue = 0 THEN 'FALSE'
+	   END, '') [DestinationValue]
+
+	  ,ISNULL(CASE
+		  WHEN s.ReturnType = 'S' THEN 'UPDATE $(dest).pca.dbo.codes SET StringValue = ''' + s.StringValue + ''' WHERE ApplicationId=''' + s.ApplicationId + ''' AND CodeHeaderid=''' + s.CodeHeaderId + '''  AND CodeId=''' + s.CodeId + ''' '
+		  WHEN s.ReturnType = 'N' THEN 'UPDATE $(dest).pca.dbo.codes SET NumericValue = ' + CONVERT(VARCHAR(50), ISNULL(s.NumericValue, 0)) + ' WHERE ApplicationId=''' + s.ApplicationId + ''' AND CodeHeaderid=''' + s.CodeHeaderId + '''  AND CodeId=''' + s.CodeId + ''' '
+		  WHEN s.ReturnType = 'B' AND
+			 s.BooleanValue = 1 THEN 'UPDATE $(dest).pca.dbo.codes SET BooleanValue = 1 WHERE ApplicationId=''' + s.ApplicationId + ''' AND CodeHeaderid=''' + s.CodeHeaderId + '''  AND CodeId=''' + s.CodeId + ''' '
+		  WHEN s.ReturnType = 'B' AND
+			 s.BooleanValue = 0 THEN 'UPDATE $(dest).pca.dbo.codes SET BooleanValue = 0 WHERE ApplicationId=''' + s.ApplicationId + ''' AND CodeHeaderid=''' + s.CodeHeaderId + '''  AND CodeId=''' + s.CodeId + ''' '
+	   END, '') [SyncDestinationSQL]
+
+	  ,ISNULL(CASE
+		  WHEN d.ReturnType = 'S' THEN 'UPDATE $(source).pca.dbo.codes SET StringValue = ''' + d.StringValue + ''' WHERE ApplicationId=''' + d.ApplicationId + ''' AND CodeHeaderid=''' + d.CodeHeaderId + '''  AND CodeId=''' + d.CodeId + ''' '
+		  WHEN d.ReturnType = 'N' THEN 'UPDATE $(source).pca.dbo.codes SET NumericValue = ' + CONVERT(VARCHAR(50), ISNULL(d.NumericValue, 0)) + ' WHERE ApplicationId=''' + d.ApplicationId + ''' AND CodeHeaderid=''' + d.CodeHeaderId + '''  AND CodeId=''' + d.CodeId + ''' '
+		  WHEN d.ReturnType = 'B' AND
+			 d.BooleanValue = 1 THEN 'UPDATE $(source).pca.dbo.codes SET BooleanValue = 1 WHERE ApplicationId=''' + d.ApplicationId + ''' AND CodeHeaderid=''' + d.CodeHeaderId + '''  AND CodeId=''' + d.CodeId + ''' '
+		  WHEN d.ReturnType = 'B' AND
+			 d.BooleanValue = 0 THEN 'UPDATE $(source).pca.dbo.codes SET BooleanValue = 0 WHERE ApplicationId=''' + d.ApplicationId + ''' AND CodeHeaderid=''' + d.CodeHeaderId + '''  AND CodeId=''' + d.CodeId + ''' '
+	   END, '') [SyncSourceSQL]
+	  ,d.Plant
+	  ,d.ApplicationId
+	  ,d.CodeHeaderId
+	  ,d.CodeId
+	  ,d.Description
+	  ,d.ReturnType
+
+    FROM
+    #sourcecodes s LEFT JOIN #destinationcodes d
+	   ON s.ApplicationId = d.ApplicationId
+		  AND s.CodeHeaderId = d.CodeHeaderId
+		  AND s.CodeId = d.CodeId
+    WHERE s.StringValue <> d.StringValue
+    OR s.NumericValue <> d.NumericValue
+    OR s.BooleanValue <> d.BooleanValue
+
+END
+
+
+
+
+
+
+IF @Type = 'MD'
+BEGIN
+    --compare source return values to destination
+    PRINT 'Source: $(source)  Destination: $(dest)' + CHAR(10) + CHAR(13)
+    PRINT 'This script is showing codes that are missing from the destination. '
+
+    SELECT
+	   '$(source)' Source
+	  ,'$(dest)' Destination
+	  ,ISNULL(CASE
+		  WHEN s.ReturnType = 'S' THEN s.StringValue
+		  WHEN s.ReturnType = 'N' THEN CONVERT(VARCHAR(50), ISNULL(s.NumericValue, 0))
+		  WHEN s.ReturnType = 'B' AND
+			 s.BooleanValue = 1 THEN 'TRUE'
+		  WHEN s.ReturnType = 'B' AND
+			 s.BooleanValue = 0 THEN 'FALSE'
+	   END, '') [SourceValue]
+	  ,'----**** Be careful about inserting into production. Codes are replicated and should be added there for the most part. *****' + CHAR(10) + CHAR(13) +
+	  '--INSERT INTO $(dest).pca.dbo.Codes (Plant, ApplicationId, CodeHeaderId, CodeId, Description, ReturnType, StringValue, NumericValue, BooleanValue, Encoded, Exclude, Inactive, ModifyUser, ModifyTimeStamp) ' + CHAR(10) + CHAR(13) +
+	   '--SELECT ' + CONVERT(VARCHAR, s.Plant) + ',''' + s.ApplicationId + ''',''' + s.CodeHeaderId + ''',''' + s.CodeId + ''',''' + s.Description + ''',''' + s.ReturnType + ''',''' + s.StringValue + ''',' + CONVERT(VARCHAR(200), s.NumericValue) + ',' + CONVERT(VARCHAR, s.BooleanValue) + ',' + CONVERT(VARCHAR, s.Encoded) + ',' + CONVERT(VARCHAR, s.Exclude) + ',' + CONVERT(VARCHAR, s.Inactive) + ',''' + CONVERT(VARCHAR(50), s.ModifyUser) + ''',''' + CONVERT(VARCHAR(50), s.ModifyTimeStamp) + '''' InsertSQL
+
+	  ,s.Plant
+	  ,s.ApplicationId
+	  ,s.CodeHeaderId
+	  ,s.CodeId
+	  ,s.Description
+	  ,s.ReturnType
+
+    FROM
+    #sourcecodes s LEFT JOIN #destinationcodes d
+	   ON s.ApplicationId = d.ApplicationId
+		  AND s.CodeHeaderId = d.CodeHeaderId
+		  AND s.CodeId = d.CodeId
+    WHERE d.CodeId IS NULL
+END
+
+
+IF @Type = 'MS'
+BEGIN
+    PRINT 'Source: $(source)  Destination: $(dest)' + CHAR(10) + CHAR(13)
+    PRINT 'This script is showing codes that are missing from the source. '
+    --compare source return values to destination
+    SELECT
+	   '$(source)' Source
+	  ,'$(dest)' Destination
+	  ,ISNULL(CASE
+		  WHEN d.ReturnType = 'S' THEN d.StringValue
+		  WHEN d.ReturnType = 'N' THEN CONVERT(VARCHAR(50), ISNULL(d.NumericValue, 0))
+		  WHEN d.ReturnType = 'B' AND
+			 d.BooleanValue = 1 THEN 'TRUE'
+		  WHEN d.ReturnType = 'B' AND
+			 d.BooleanValue = 0 THEN 'FALSE'
+	   END, '') [SourceValue]
+	  ,'----**** Be careful about inserting into production. Codes are replicated and should be added there for the most part. *****' + CHAR(10) + CHAR(13) +
+	  '--INSERT INTO $(source).pca.dbo.Codes (Plant, ApplicationId, CodeHeaderId, CodeId, Description, ReturnType, StringValue, NumericValue, BooleanValue, Encoded, Exclude, Inactive, ModifyUser, ModifyTimeStamp) ' + CHAR(10) + CHAR(13) +
+	   '--SELECT ' + CONVERT(VARCHAR, d.Plant) + ',''' + d.ApplicationId + ''',''' + d.CodeHeaderId + ''',''' + d.CodeId + ''',''' + d.Description + ''',''' + d.ReturnType + ''',''' + d.StringValue + ''',' + CONVERT(VARCHAR(200), d.NumericValue) + ',' + CONVERT(VARCHAR, d.BooleanValue) + ',' + CONVERT(VARCHAR, d.Encoded) + ',' + CONVERT(VARCHAR, d.Exclude) + ',' + CONVERT(VARCHAR, d.Inactive) + ',''' + CONVERT(VARCHAR(50), d.ModifyUser) + ''',''' + CONVERT(VARCHAR(50), d.ModifyTimeStamp) + '''' InsertSQL
+
+	  ,d.Plant
+	  ,d.ApplicationId
+	  ,d.CodeHeaderId
+	  ,d.CodeId
+	  ,d.Description
+	  ,d.ReturnType
+
+    FROM
+    #destinationcodes d LEFT JOIN #sourcecodes s
+	   ON d.ApplicationId = s.ApplicationId
+		  AND d.CodeHeaderId = s.CodeHeaderId
+		  AND d.CodeId = s.CodeId
+    WHERE s.CodeId IS NULL
+END
+
+
+
+
+
+
+----grab missing applications from pcalaksql01
+
+--INSERT INTO AppSettings.dbo.Applications
+--SELECT * FROM PCALAKSQL01.AppSettings.dbo.Applications a
+--WHERE ID NOT IN (SELECT ID FROM AppSettings.dbo.Applications a1)
+
+
+
+----grab missing code headers from pcalaksql01
+--INSERT INTO PCA.dbo.CodeHeaders
+--SELECT
+--    c.*
+--FROM
+--PCALAKSQL01.PCA.dbo.CodeHeaders c LEFT JOIN PCA.dbo.CodeHeaders c1
+--    ON c.ApplicationId = c1.ApplicationId
+--	   AND c.CodeHeaderId = c1.CodeHeaderId
+	   
+--WHERE c1.ApplicationId IS NULL
+
+
+
+----grap missing code groups from pcalaksql01
+--INSERT INTO PCA.dbo.CodeGroups
+
+--SELECT c.* FROM PCALAKSQL01.PCA.dbo.CodeGroups c
+--LEFT JOIN PCA.dbo.CodeGroups c1
+-- ON c.ApplicationId = c1.ApplicationId AND c.CodeGroupId = c1.CodeGroupId
+
+-- WHERE c1.ApplicationId  IS NU]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

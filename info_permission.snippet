@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_permission</Title>
+      <Shortcut>info_permission</Shortcut>
+      <Description>PCA permission search</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>Search</ID>
+          <ToolTip>Search Criteria</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[
+USE PCA
+
+DECLARE @search  varchar(100), @search2 varchar(100)
+SET @search = '%$Search$%'
+SET @search2  ='%%'
+
+SELECT a.Description + ' | '  + pg.Description + ' | ' + p.Description + ' - ''' + p.Id + '''' [Desc]
+
+
+,'INSERT INTO PCA.dbo.Permission VALUES (''' 
+                     + p.Id + ''', ''' 
+                     + p.GroupId + ''', ''' 
+                     + p.ApplicationId + ''', ''' 
+                     + p.Description + ''', ''' 
+                     + p.LongDescription + ''', ' 
+                     + CONVERT(VARCHAR(1), p.IsSox) + ', ' 
+                     + CONVERT(VARCHAR(1), p.Inactive) + ', ' 
+                     + CONVERT(VARCHAR(3), p.Plant) 
+              + ')' AS InsertSql
+
+       ,'UPDATE PCA.dbo.Permission SET '
+                     + 'Description = ''' + P.Description + ''', '
+                     + 'LongDescription = ''' + P.LongDescription + ''', '
+                     + 'IsSox = ' + CONVERT(VARCHAR(1), p.IsSox) + ', '
+                     + 'Inactive = ' + CONVERT(VARCHAR(1), p.Inactive) + ', '
+                     + 'Plant = ' + CONVERT(VARCHAR(3), p.Plant) 
+              + ' WHERE '
+                     + 'ID = ''' + P.Id + ''' AND '
+                     + 'GroupId = ''' + P.GroupId + ''' AND '
+                     + 'ApplicationId = ''' + P.ApplicationId + ''''
+              AS UpdateSql
+
+FROM Permission p
+INNER JOIN PermissionGroup pg
+ON p.ApplicationId = pg.ApplicationId
+AND p.GroupId = pg.Id
+INNER JOIN AppSettings.dbo.Applications a
+ON a.ID = p.ApplicationId
+
+
+WHERE 1=1
+AND (
+  p.Id like @search 
+ OR GroupId like @search 
+ OR p.ApplicationId like @search 
+ OR p.Description like @search 
+ OR LongDescription like @search 
+)
+
+AND (
+  p.Id like @search2 
+ OR GroupId like @search2 
+ OR p.ApplicationId like @search2 
+ OR p.Description like @search2 
+ OR LongDescription like @search2 )
+
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -31,6 +31,7 @@ SELECT *,
 								   ,DATA_TYPE
 								   ,LENGTH
 								   ,NUMERIC_SCALE
+  							         
                            FROM QSYS2.SYSCOLUMNS
 				         WHERE TABLE_SCHEMA = ''''' + table_schema + ''''' AND TABLE_NAME = ''''' + TABLE_NAME	+ ''''' ORDER BY ORDINAL_POSITION'')' Details,
 'SELECT * FROM OPENQUERY(ISERIES, 
@@ -38,7 +39,7 @@ SELECT *,
 
 
  FROM OPENQUERY(iseries, 'SELECT TABLE_SCHEMA, TABLE_TEXT, TABLE_NAME
-                               from QSYS2.SYSTABLES WHERE TABLE_NAME LIKE ''%$Tablename$%''')
+                               FROM QSYS2.SYSTABLES WHERE TABLE_NAME LIKE UPPER(''%$Tablename$%'')')
 
 
 			]]></Code>

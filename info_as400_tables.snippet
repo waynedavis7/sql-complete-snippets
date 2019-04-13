@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>info_as400_tables</Title>
+      <Shortcut>info_as400_tables</Shortcut>
+      <Description>info_as400_tables</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>TableName</ID>
+          <ToolTip>TableName</ToolTip>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[EXEC('CALL QSYS.QCMDEXC(''DSPFD FILE(WLLCMN/*ALL) TYPE(*MBR) OUTPUT(*OUTFILE) FILEATR(*PF) OUTFILE(DEVJHD/FILINFO)'', 0000000088.00000)') AT ISERIES
+--EXEC('CALL QSYS.QCMDEXC(''DSPFD FILE(SMBILLDATA/*ALL) TYPE(*MBR) OUTPUT(*OUTFILE) FILEATR(*PF) OUTFILE(DEVJHD/FILINFO)'', 0000000092.00000)') AT ISERIES
+--EXEC('CALL QSYS.QCMDEXC(''DSPFD FILE(SMSDATA/*ALL) TYPE(*MBR) OUTPUT(*OUTFILE) FILEATR(*PF) OUTFILE(DEVJHD/FILINFO)'', 0000000089.00000)') AT ISERIES
+--EXEC('CALL QSYS.QCMDEXC(''DSPFD FILE(PCACMN/*ALL) TYPE(*MBR) OUTPUT(*OUTFILE) FILEATR(*PF) OUTFILE(DEVJHD/FILINFO)'', 0000000088.00000)') AT ISERIES
+--EXEC('CALL QSYS.QCMDEXC(''DSPFD FILE(MNUSECDATA/*ALL) TYPE(*MBR) OUTPUT(*OUTFILE) FILEATR(*PF) OUTFILE(DEVJHD/FILINFO)'', 0000000092.00000)') AT ISERIES
+
+IF OBJECT_ID('tempdb.dbo.#tables') IS NOT NULL
+	DROP TABLE #tables
+GO
+
+SELECT * INTO #tables FROM OPENQUERY(ISERIES, 'SELECT * FROM DEVJHD.FILINFO')
+
+SELECT MBLIB + '/' + MBFILE TableName
+	 ,MBTXT TableDescription
+	 ,CASE WHEN MBSIZ=0 THEN '*NOMAX' ELSE CONVERT(VARCHAR(50),MBSIZ) END 'FileSize'
+	 ,MBNRCD Records
+	 ,MBRCDC RecordCapacity
+	 ,(MBNRCD/CASE WHEN MBRCDC =0 THEN 1 ELSE MBRCDC END)*100 RecordCapacityUsed
+	 ,MBJRNL Journaled
+	 ,MBJRLB  + '/' + MBJRNM JournalName
+	 ,MBUDAT LastUsedDate
+	 ,'DBU ' + MBLIB + '/' + MBFILE DBU
+	 ,'DSPFD ' + MBLIB + '/' + MBFILE DisplayFileDetails
+	 ,'WRKOBJLCK OBJ(' + MBLIB + '/' + MBFILE + ') ' + 'OBJTYPE(*FILE)' WorkLockCommand
+	 ,'STRJRNPF FILE(' + MBLIB + '/' + MBFILE +') ' + 'JRN('  + Journal.JournalName + ')' StartJournaling
+	 ,'SELECT * FROM OPENQUERY(ISERIES,''SELECT DISTINCT  COLUMN_NAME
+					                  ,COLUMN_TEXT
+								   ,TABLE_SCHEMA
+								   ,TABLE_NAME
+								   ,TABLE_OWNER
+								   ,ORDINAL_POSITION
+								   ,DATA_TYPE
+								   ,LENGTH
+								   ,NUMERIC_SCALE  							         
+                           FROM QSYS2.SYSCOLUMNS
+				         WHERE TABLE_SCHEMA = ''''' + MBLIB + ''''' AND TABLE_NAME = ''''' + MBFILE	+ ''''' ORDER BY ORDINAL_POSITION'')' TableColunDetails,
+         'SELECT * FROM OPENQUERY(ISERIES,''SELECT * FROM ' + MBLIB + '.' + MBFILE + ' FETCH FIRST 10 ROWS ONLY'')' SampleDataQuery
+	 --, *
+	  FROM #tables t
+	  OUTER APPLY (SELECT TOP 1 MBJRLB + '/' + MBJRNM  JournalName FROM #tables WHERE MBJRNL='Y') AS Journal
+WHERE
+ MBFILE LIKE '%$TableName$%'
+-- AND T.mbsiz <> 0    -- 0 denotes *NOMAX
+ -- AND (MBNRCD/MBRCDC)*100 >50
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

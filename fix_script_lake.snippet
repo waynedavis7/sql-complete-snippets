@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>fix_script_lake</Title>
+      <Shortcut>fix_script_lake</Shortcut>
+      <Description>Mark a script as complete at Lake</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal>
+          <ID>ScriptId</ID>
+          <ToolTip>ScriptId</ToolTip>
+          <Default>0</Default>
+        </Literal>
+      </Declarations>
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE PCA
+
+INSERT INTO DbMigrationHistory (ScriptId, InstanceName, Applied, AppliedBy)
+    VALUES ($ScriptId$, 'PCALAKSQL01', DEFAULT, '069E75EC-A3D0-405C-8665-CD2C58A6D6B4');
+
+
+UPDATE DbMigrationScriptSourceSystems
+SET Applied = GETDATE(), AppliedBy = '069E75EC-A3D0-405C-8665-CD2C58A6D6B4'
+WHERE ScriptId = $ScriptId$ AND SourceSystem = 'LAK']]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets>
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>gen_job_ag_aware_step</Title>
+      <Shortcut>gen_job_ag_aware_step</Shortcut>
+      <Description>Generate job AG aware step</Description>
+      <Author>Devart</Author>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Declarations />
+      <Code Language="SQL Server" Kind="SQL Server"><![CDATA[USE msdb
+
+SELECT
+    s.name
+   ,'exec AddAGPrimaryCheckStepToAgentJob ''' + s.name + '''' AddAGPrimaryCheckJobStep
+FROM
+msdb.dbo.sysjobs s
+ORDER BY s.name
+
+
+
+--use master
+--go
+ 
+--IF OBJECT_ID('dbo.AddAGPrimaryCheckStepToAgentJob') IS NOT NULL
+--	DROP PROCEDURE dbo.AddAGPrimaryCheckStepToAgentJob
+--GO
+
+
+---- Adds a first step to specified job, which checks whether running on Primary replica
+ 
+--CREATE procedure AddAGPrimaryCheckStepToAgentJob
+--    @jobname nvarchar(128)
+--as
+ 
+--set nocount on;
+ 
+---- Do nothing if No AG groups defined
+--IF SERVERPROPERTY ('IsHadrEnabled') = 1
+--begin
+--    declare @jobid uniqueidentifier = (select sj.job_id from msdb.dbo.sysjobs sj where sj.name = @jobname)
+ 
+--    if not exists(select * from msdb.dbo.sysjobsteps where job_id = @jobid and step_name = 'Check If AG Primary' )
+--    begin
+--        -- Add new first step: on success go to next step, on failure quit reporting success
+--        exec msdb.dbo.sp_add_jobstep 
+--          @job_id = @jobid
+--        , @step_id = 1
+--        , @cmdexec_success_code = 0
+--        , @step_name = 'Check If AG Primary'
+--        , @on_success_action = 3  -- On success, go to Next Step
+--        , @on_success_step_id = 2
+--        , @on_fail_action = 1     -- On failure, Quit with Success  
+--        , @on_fail_step_id = 0
+--        , @retry_attempts = 0
+--        , @retry_interval = 0
+--        , @os_run_priority = 0
+--        , @subsystem = N'TSQL'
+--        , @command=N'IF sys.fn_hadr_is_primary_replica( ''Trident'' )<>1
+--BEGIN
+--    -- Secondary node, throw an error
+--    raiserror (''Not the AG primary'', 2, 1)
+--END'
+--        , @database_name=N'master'
+--        , @flags=0
+--    end
+--end
+--GO
+]]></Code>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
